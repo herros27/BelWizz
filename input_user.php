@@ -18,27 +18,27 @@ if (!empty($_POST['honeypot'])) {
         $errors = [];
 
         if (empty($id_user)) {
-            $errors[] = "Username is required.";
+            $errors[] = "Username Harus Di Isi.";
         }
 
         if (empty($nama)) {
-            $errors[] = "Nama Lengkap is required.";
+            $errors[] = "Nama Lengkap Harus Di Isi.";
         }
 
         if (empty($email)) {
-            $errors[] = "Email is required.";
+            $errors[] = "Email Harus Di Isi.";
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "Invalid email format.";
+            $errors[] = "Format Email Tidak Valid.";
         }
 
         if (empty($password)) {
-            $errors[] = "Password is required.";
+            $errors[] = "Password Harus Di Isi.";
         } elseif ($password !== $confirmPass) {
-            $errors[] = "Password and Confirm Password do not match.";
+            $errors[] = "Password Dan Konfirmasi Password tidak sama.";
         }
 
         if (empty($role)) {
-            $errors[] = "Role is required.";
+            $errors[] = "Role Wajib Di Pilih.";
         }
 
         // Jika ada error, kembali ke form dengan pesan error
@@ -67,7 +67,7 @@ if (!empty($_POST['honeypot'])) {
         // Insert data ke database
         $insertQuery = "INSERT INTO user (id_user, nama, email, password, role) VALUES ('$id_user', '$nama', '$email', '$hashedPassword', '$role')";
         if (mysqli_query($con, $insertQuery)) {
-            $_SESSION['success'] = "Pendaftaran berhasil!";
+            $_SESSION['signup_success'] = "Pendaftaran berhasil!";
             $_SESSION['form_status'] = 'login';
             header("Location: login.php");
         } else {

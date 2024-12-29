@@ -25,7 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     // Hapus file gambar dari server jika ada
     if (!empty($gambarPath) && file_exists($gambarPath)) {
         if (!unlink($gambarPath)) {
-            echo "Gagal menghapus file gambar dari server.";
+            // echo "Gagal menghapus file gambar dari server.";
+            header("Location: ../index.php?message=Gagal menghapus file gambar dari server");
+
             exit();
         }
 
@@ -40,7 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             header("Location: ../index.php?message=Data berhasil dihapus");
             exit();
         } else {
-            echo "Gagal menghapus data: " . mysqli_error($con);
+            header("Location: ../index.php?message=Gagal menghapus data: " . mysqli_error($con));
+            // echo "Gagal menghapus data: " . mysqli_error($con);
         }
     }
 } else {

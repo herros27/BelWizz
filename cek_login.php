@@ -9,22 +9,23 @@ if (!empty($_POST['honeypot'])) {
     $password = $_POST['password'];
 
     // Query untuk mendapatkan data user berdasarkan id_user
-    $sql = "SELECT * FROM user WHERE id_user = ?";
+    $sql = "SELECT * FROM user WHERE id_user = ? OR email = ?";
     $stmt = $con->prepare($sql);
-    $stmt->bind_param("s", $id_user);
+    $stmt->bind_param("ss", $id_user, $id_user);
     $stmt->execute();
     $result = $stmt->get_result();
 
+    //kalo data nya ada berarrti berhasil login
     if ($result->num_rows > 0) {
-        $r = $result->fetch_assoc();
+        $data = $result->fetch_assoc();
 
         // Verifikasi password menggunakan password_verify()
-        if (password_verify($password, $r['password'])) {
+        if (password_verify($password, $data['password'])) {
             session_start();
             $_SESSION["login"] = true;
-            $_SESSION['iduser'] = $r['id_user'];
-            $_SESSION['passuser'] = $r['password'];
-            $_SESSION['role'] = $r['role'];
+            $_SESSION['iduser'] = $data['id_user'];
+            $_SESSION['passuser'] = $data['password'];
+            $_SESSION['role'] = $data['role'];
 
             header('location:index.php');
             exit;

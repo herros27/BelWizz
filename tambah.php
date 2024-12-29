@@ -6,70 +6,95 @@ if (!isset($_SESSION["login"])) {
     exit;
 }
 
-// Memanggil file koneksi.php
 include_once("koneksi.php");
 
-$errors = []; // Menampung pesan kesalahan
-$status = 200; // Default: sukses
+// Inisialisasi variabel
+$isEdit = isset($_GET['id']);
+$errors = [];
+$destinasi = null;
+$target_dir = "userUploads/";
+$allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
 
-if (isset($_POST['Submit'])) {
-    // Variable untuk menampung data $_POST yang dikirimkan melalui form
-    $nama_destinasi = mysqli_real_escape_string($con, $_POST['nama_destinasi']);
-    $deskripsi = mysqli_real_escape_string($con, $_POST['deskripsi']);
+// Ambil data jika dalam mode edit
+if ($isEdit) {
+    $id = intval($_GET['id']);
+    $result = mysqli_query($con, "SELECT * FROM destinasi WHERE id = $id");
+    $destinasi = mysqli_fetch_assoc($result);
 
-    // Menangani unggahan gambar
-    $target_dir = "userUploads/";
-    $target_file = $target_dir . basename($_FILES["gambar"]["name"]);
-    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-
-    // Cek apakah file gambar diunggah
-    if (isset($_FILES["gambar"]) && $_FILES["gambar"]["error"] == 0) {
-        // Periksa apakah file gambar adalah gambar asli atau palsu
-        $check = getimagesize($_FILES["gambar"]["tmp_name"]);
-        if ($check === false) {
-            $errors['gambar'] = "File yang diunggah bukan gambar.";
-        }
-
-        // Periksa apakah file sudah ada
-        if (file_exists($target_file)) {
-            $errors['gambar'] = "File sudah ada. Silakan ubah nama file Anda.";
-        }
-
-        // Periksa ukuran file (maksimal 10 MB)
-        if ($_FILES["gambar"]["size"] > 10485760) {
-            $errors['gambar'] = "Ukuran file terlalu besar. Maksimal 10 MB.";
-        }
-
-        // Perbolehkan format file tertentu
-        $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
-        if (!in_array($imageFileType, $allowed_types)) {
-            $errors['gambar'] = "Hanya format JPG, JPEG, PNG, dan GIF yang diizinkan.";
-        }
-    } else {
-        $errors['gambar'] = "Tidak ada file gambar yang diunggah.";
-    }
-
-    // Jika tidak ada kesalahan, lanjutkan proses unggah
-    if (empty($errors)) {
-        if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $target_file)) {
-            // Simpan URL gambar ke database
-            $gambarUrl = mysqli_real_escape_string($con, $target_file);
-            $result = mysqli_query($con, "INSERT INTO destinasi (nama_destinasi, deskripsi, gambar) VALUES ('$nama_destinasi', '$deskripsi', '$gambarUrl')");
-
-            if ($result) {
-                $status = 201; // Created
-                header("Location: index.php?message=Data berhasil disimpan");
-                exit;
-            } else {
-                $errors['database'] = "Gagal menyimpan data ke database.";
-            }
-        } else {
-            $errors['upload'] = "Terjadi kesalahan saat mengunggah file.";
-        }
+    if (!$destinasi) {
+        header("Location: index.php?error=Data tidak ditemukan");
+        exit;
     }
 }
 
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $nama_destinasi = mysqli_real_escape_string($con, $_POST['nama_destinasi']);
+    $deskripsi = mysqli_real_escape_string($con, $_POST['deskripsi']);
+    $id = intval($_POST['id'] ?? 0);
+
+    // Menangani unggahan gambar
+    $gambarUrl = $destinasi['gambar'] ?? ''; // Gunakan gambar lama jika tidak diunggah ulang
+    if (isset($_FILES["gambar"]) && $_FILES["gambar"]["error"] == 0) {
+        $target_file = $target_dir . time() . '_' . basename($_FILES["gambar"]["name"]); // Tambahkan timestamp untuk menghindari duplikasi
+        $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+
+        // Validasi file gambar
+        $check = getimagesize($_FILES["gambar"]["tmp_name"]);
+        if ($check === false) {
+            $errors['gambar'] = "File yang diunggah bukan gambar.";
+        } elseif (!in_array($imageFileType, $allowed_types)) {
+            $errors['gambar'] = "Hanya format JPG, JPEG, PNG, dan GIF yang diizinkan.";
+        } elseif ($_FILES["gambar"]["size"] > 10485760) {
+            $errors['gambar'] = "Ukuran file terlalu besar. Maksimal 10 MB.";
+        }
+
+        // Jika valid, pindahkan file
+        if (empty($errors)) {
+            if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $target_file)) {
+                $gambarUrl = mysqli_real_escape_string($con, $target_file);
+            } else {
+                $errors['upload'] = "Terjadi kesalahan saat mengunggah file.";
+            }
+        }
+    }
+
+    // Simpan atau update data jika tidak ada kesalahan
+    if (empty($errors)) {
+        if ($isEdit && $id) {
+            if (
+                $nama_destinasi === $destinasi['nama_destinasi'] &&
+                $deskripsi === $destinasi['deskripsi'] &&
+                $gambarUrl === $destinasi['gambar']
+            ) {
+                // Tidak ada perubahan, kembalikan ke halaman sebelumnya dengan pesan
+                header("Location: index.php?message=Tidak ada perubahan yang disimpan");
+                exit;
+            }
+
+            // Query update hanya dijalankan jika ada perubahan
+            $query = "UPDATE destinasi SET 
+                nama_destinasi = '$nama_destinasi', 
+                deskripsi = '$deskripsi', 
+                gambar = '$gambarUrl' 
+              WHERE id = $id";
+        } else {
+            // Tambah data
+            $query = "INSERT INTO destinasi (nama_destinasi, deskripsi, gambar) 
+                      VALUES ('$nama_destinasi', '$deskripsi', '$gambarUrl')";
+        }
+
+        if (mysqli_query($con, $query)) {
+            header("Location: index.php?message=Data berhasil disimpan");
+            exit;
+        } else {
+            $errors['database'] = "Gagal menyimpan data ke database.";
+        }
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -77,7 +102,7 @@ if (isset($_POST['Submit'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Destinasi</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- <link href="assets/tinymce/js/tinymce/skins/ui/oxide/content.min.css" rel="stylesheet"> -->
 
     <script src="https://cdn.tiny.cloud/1/shjneghiz6db6exftf0bdhpkwk0cqtts2wuhdglfdrlqkp57/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
@@ -89,11 +114,10 @@ if (isset($_POST['Submit'])) {
             margin: 0;
             padding: 0;
             display: flex;
-            margin: 50px;
+            margin: 0px;
 
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
 
         .container {
@@ -102,7 +126,6 @@ if (isset($_POST['Submit'])) {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 20px;
             width: 100%;
-            max-width: 600px;
             margin: 20px;
         }
 
@@ -198,37 +221,72 @@ if (isset($_POST['Submit'])) {
 </head>
 
 <body>
-    <div class="container">
-        <h2 class="text-2xl font-bold mb-4">Tambah Destinasi</h2>
-        <a href="index.php" class="text-blue-500 hover:none mb-4 inline-block">Go to Home</a>
-        <form action="tambah.php" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="nama_destinasi">Nama Destinasi</label>
-                <input type="text" name="nama_destinasi" id="nama_destinasi">
-                <?php if (isset($errors['nama_destinasi'])): ?>
-                    <div class="text-red-500 text-sm"><?= $errors['nama_destinasi'] ?></div>
+    <div class="container mx-auto mt-10 p-6 bg-white rounded shadow">
+        <h1 class="text-2xl font-bold mb-4"><?= $isEdit ? 'Edit Destinasi' : 'Tambah Destinasi' ?></h1>
+        <form action="" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="<?= $destinasi['id'] ?? '' ?>">
+
+            <div class="mb-4">
+                <label for="nama_destinasi" class="block text-gray-700">Nama Destinasi</label>
+                <input type="text" id="nama_destinasi" name="nama_destinasi"
+                    class="w-full p-2 border rounded"
+                    value="<?= htmlspecialchars($destinasi['nama_destinasi'] ?? '') ?>">
+            </div>
+
+            <div class="mb-4">
+                <label for="deskripsi" class="block text-gray-700">Deskripsi</label>
+                <textarea id="deskripsi" name="deskripsi" rows="4"
+                    class="w-full p-2 border rounded"><?= htmlspecialchars($destinasi['deskripsi'] ?? '') ?></textarea>
+            </div>
+
+            <div class="mb-4">
+                <!-- Preview gambar -->
+                <div id="preview-container" class="mt-2">
+                    <?php if ($destinasi['gambar'] ?? false): ?>
+                        <p class="text-sm text-gray-600 mt-1">Gambar lama:</p>
+                        <div class="flex justify-center items-center">
+                            <img src="<?= $destinasi['gambar'] ?>" alt="Preview Gambar Lama" class="mt-2 w-100 h-40 md:h-80 object-cover rounded">
+                        </div>
+
+                    <?php endif; ?>
+                    <p id="preview-teks" class=" hidden text-sm text-gray-600 mt-1">Gambar baru:</p>
+                    <div class="flex justify-center items-center">
+                        <img id="preview" src="#" alt="Preview Gambar Baru" class="hidden mt-2 w-100 h-40 md:h-80 object-cover rounded">
+                    </div>
+                </div>
+                <label for="gambar" class="block text-gray-700">Upload Gambar</label>
+                <input type="file" id="gambar" name="gambar" class="w-full p-2 border rounded" accept="image/*">
+
+
+                <?php if (!empty($errors)): ?>
+                    <div class="mb-4 text-red-500">
+                        <?= implode('<br>', $errors) ?>
+                    </div>
                 <?php endif; ?>
-            </div>
-            <div class="form-group">
-                <label for="deskripsi">Deskripsi</label>
-                <textarea id="deskripsi" name="deskripsi" rows="4"></textarea>
-                <?php if (isset($errors['deskripsi'])): ?>
-                    <div class="text-red-500 text-sm"><?= $errors['deskripsi'] ?></div>
-                <?php endif; ?>
-            </div>
-            <div class="form-group">
-                <label for="gambar">Gambar</label>
-                <input type="file" name="gambar" id="gambar">
-                <?php if (isset($errors['gambar'])): ?>
-                    <div class="text-red-500 text-sm"><?= $errors['gambar'] ?></div>
-                <?php endif; ?>
-            </div>
-            <div class="form-group mt-4">
-                <button type="submit" name="Submit">Tambah</button>
-            </div>
+
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
+                    <?= $isEdit ? 'Update' : 'Tambah' ?>
+                </button>
         </form>
     </div>
     <script>
+        document.getElementById('gambar').addEventListener('change', function(event) {
+            const file = event.target.files[0]; // Ambil file yang dipilih
+            if (file) {
+                const reader = new FileReader(); // Buat FileReader untuk membaca file
+                reader.onload = function(e) {
+                    // Tampilkan preview gambar
+                    const previewTeks = document.getElementById('preview-teks')
+                    const preview = document.getElementById('preview');
+                    preview.src = e.target.result;
+                    previewTeks.classList.remove('hidden');
+                    preview.classList.remove('hidden');
+
+                };
+                reader.readAsDataURL(file); // Membaca file sebagai Data URL
+            }
+        });
+
         tinymce.init({
             selector: 'textarea#deskripsi',
             toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',

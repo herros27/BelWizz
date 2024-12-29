@@ -84,7 +84,7 @@ if (isset($_GET['message']) && $_GET['message'] == 'logout') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Landing Page - Wisata</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -103,9 +103,9 @@ if (isset($_GET['message']) && $_GET['message'] == 'logout') {
   <section class="bg-cover bg-center h-screen" style="background-image: url('https://www.belitungtours.com/asap/assets/asap/pages/setting/artikel/images/5/190917221110_rent-car-belitung_2.jpg');">
     <div class="flex items-center justify-center h-full bg-gray-900 bg-opacity-50">
       <div class="text-center text-white">
-        <h1 class="text-5xl font-bold mb-4">Selamat Datang di BellWizz</h1>
+        <h1 class="text-5xl font-bold mb-4">Selamat Datang di BelWizz</h1>
         <p class="text-xl mb-8">Temukan destinasi wisata terbaik di Belitung</p>
-        <a href="login.php" class="bg-blue-500 text-white px-6 py-3 rounded-full hover:bg-blue-600">Mulai Sekarang</a>
+        <a href="login.php?form=signup" class="bg-blue-500 text-white px-6 py-3 rounded-full hover:bg-blue-600">Mulai Sekarang</a>
       </div>
     </div>
   </section>
@@ -124,14 +124,7 @@ if (isset($_GET['message']) && $_GET['message'] == 'logout') {
           <p class="text-gray-700">Pulau Lengkuas memiliki daya tarik tersendiri salah satunya adalah keberadaan sebuah mercusuar peninggalan Belanda yang masih berdiri kokoh meskipun telah berusia lebih dari satu abad..</p>
         </div>
       </div>
-      <!-- Card 2 -->
-      <!-- <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
-        <img src="src/pantai-tanjung-tinggi-belitung_2.jpg" alt="Tanjung Tinggi" class="w-full h-48 object-cover">
-        <div class="p-4">
-          <h3 class="text-xl font-bold mb-2"></h3>
-          <p class="text-gray-700"></p>
-        </div>
-      </div> -->
+
       <div class="card bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="image-container">
           <img src="src/pantai-tanjung-tinggi-belitung_2.jpg" alt="Tanjung Tinggi" class="image">
@@ -158,7 +151,7 @@ if (isset($_GET['message']) && $_GET['message'] == 'logout') {
   <!-- Footer -->
   <footer class="bg-gray-800 text-white py-4">
     <div class="container mx-auto text-center">
-      <p>&copy; 2024 BellWizz. Kemas Khairunsyah.</p>
+      <p>&copy; 2024 BelWizz. Kemas Khairunsyah.</p>
     </div>
   </footer>
 

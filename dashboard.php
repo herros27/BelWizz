@@ -52,17 +52,24 @@ $role = $_SESSION['role'];
                         <div class="card-body">
                             <h3 class="card-title"><?php echo htmlspecialchars($row['nama_destinasi']); ?></h3>
 
-
                             <a href="detail_destinasi.php?id=<?php echo $row['id']; ?>" class="btn btn-primary">Lihat Destinasi</a>
+
                             <?php if ($_SESSION['role'] === 'admin'): ?>
-                                <form action="backend/hapus_destinasi.php" method="POST" class="mt-2">
-                                    <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i> Hapus
-                                    </button>
-                                </form>
+                                <!-- Menambahkan d-flex untuk menjadikan tombol sejajar -->
+                                <div class="d-flex justify-content-end mt-2">
+                                    <form action="backend/hapus_destinasi.php" method="POST" class="mr-2">
+                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                    <a href="tambah.php?id=<?php echo $row['id']; ?>" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                </div>
                             <?php endif; ?>
                         </div>
+
                     </div>
                 </div>
             <?php
