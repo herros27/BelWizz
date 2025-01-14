@@ -91,32 +91,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         if ($isEdit && $id) {
             if (
-                $nama_destinasi === $destinasi['nama_destinasi'] &&
-                $deskripsi === $destinasi['deskripsi'] &&
-                $gambarUrl === $destinasi['gambar']
+                $nama_destinasi != $destinasi['nama_destinasi'] ||
+                $deskripsi != $destinasi['deskripsi'] ||
+                $gambarUrl != $destinasi['gambar']
             ) {
+                // Query update hanya dijalankan jika ada perubahan
+                $query = "UPDATE destinasi SET 
+                nama_destinasi = '$nama_destinasi', 
+                deskripsi = '$deskripsi', 
+                gambar = '$gambarUrl' 
+              WHERE id = $id";
+            } else {
                 // Tidak ada perubahan, kembalikan ke halaman sebelumnya dengan pesan
                 header("Location: index.php?message=Tidak ada perubahan yang disimpan");
                 exit;
             }
 
-            // Query update hanya dijalankan jika ada perubahan
-            $query = "UPDATE destinasi SET 
-                nama_destinasi = '$nama_destinasi', 
-                deskripsi = '$deskripsi', 
-                gambar = '$gambarUrl' 
-              WHERE id = $id";
+
+            if (mysqli_query($con, $query)) {
+                header("Location: index.php?message=Data berhasil diperbarui");
+                exit;
+            } else {
+                $errors['database'] = "Gagal menyimpan data ke database.";
+            }
         } else {
             // Tambah data
             $query = "INSERT INTO destinasi (nama_destinasi, deskripsi, gambar) 
                       VALUES ('$nama_destinasi', '$deskripsi', '$gambarUrl')";
-        }
-
-        if (mysqli_query($con, $query)) {
-            header("Location: index.php?message=Data berhasil disimpan");
-            exit;
-        } else {
-            $errors['database'] = "Gagal menyimpan data ke database.";
+            if (mysqli_query($con, $query)) {
+                header("Location: index.php?message=Data berhasil disimpan");
+                exit;
+            } else {
+                $errors['database'] = "Gagal menyimpan data ke database.";
+            }
         }
     }
 }

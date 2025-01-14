@@ -19,6 +19,7 @@ if (!$con) {
     echo "Error: " . mysqli_connect_error();
     exit();
 }
+
 ?>
 
 <!-- // Syntax untuk menambahkan data dummy

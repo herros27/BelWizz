@@ -94,7 +94,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Buat elemen pesan muncul
     const floatingMessage = document.createElement("div");
     floatingMessage.className = "floating-message";
-    if (message === "Data berhasil disimpan") {
+    if (
+      message === "Data berhasil disimpan" ||
+      message === "Data berhasil diperbarui"
+    ) {
       floatingMessage.style.backgroundColor = "#4BDD1FFF";
     } else {
       floatingMessage.style.backgroundColor = "#ff0404";
