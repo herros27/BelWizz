@@ -2,10 +2,14 @@
 session_start();
 
 if (!isset($_SESSION["login"])) {
-    header("Location: login.php");
+    header("Location: login.php?message=Silakan login terlebih dahulu");
     exit;
 }
 
+if ($_SESSION['role'] !== 'admin') {
+    header("Location: index.php?message=Anda tidak memiliki akses ke halaman ini");
+    exit;
+}
 include_once("koneksi.php");
 
 // Inisialisasi variabel
@@ -21,11 +25,13 @@ if ($isEdit) {
     $result = mysqli_query($con, "SELECT * FROM destinasi WHERE id = $id");
     $destinasi = mysqli_fetch_assoc($result);
 
+
     if (!$destinasi) {
         header("Location: index.php?error=Data tidak ditemukan");
         exit;
     }
 }
+
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,8 +40,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $deskripsi = mysqli_real_escape_string($con, $_POST['deskripsi']);
     $id = intval($_POST['id'] ?? 0);
 
+    // Validasi input
+    if (empty($nama_destinasi)) {
+        $errors['nama_destinasi'] = "Nama destinasi tidak boleh kosong.";
+    }
+
+    if (empty($deskripsi)) {
+        $errors['deskripsi'] = "Deskripsi tidak boleh kosong.";
+    }
+
+
     // Menangani unggahan gambar
-    $gambarUrl = $destinasi['gambar'] ?? ''; // Gunakan gambar lama jika tidak diunggah ulang
+    if ($isEdit) {
+        $gambarUrl = $destinasi['gambar']; // Untuk mode edit, gunakan gambar lama jika tidak ada unggahan baru
+    } else {
+        $gambarUrl = ''; // Untuk mode tambah, gambar wajib diunggah
+    }
+
     if (isset($_FILES["gambar"]) && $_FILES["gambar"]["error"] == 0) {
         $target_file = $target_dir . time() . '_' . basename($_FILES["gambar"]["name"]); // Tambahkan timestamp untuk menghindari duplikasi
         $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
@@ -58,7 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors['upload'] = "Terjadi kesalahan saat mengunggah file.";
             }
         }
+    } else {
+        // Validasi untuk kasus gambar kosong
+        if (empty($gambarUrl)) {
+            $errors['gambar'] = "Gambar wajib diunggah.";
+        }
     }
+
 
     // Simpan atau update data jika tidak ada kesalahan
     if (empty($errors)) {
@@ -93,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
 ?>
 
 <!DOCTYPE html>

@@ -46,10 +46,10 @@ if (isset($_GET['form']) && $_GET['form'] === 'signup') {
     </nav>
 
     <!-- Content Section -->
-    <section class="container mx-auto px-35 md:px-8 py-20 md:py-10 mt-40 md:mt-0">
+    <section class="container mx-auto px-45 md:px-8 py-20 md:py-10 mt-80 md:mt-0">
 
         <div class="main-content">
-            <div class="wrapper p-8 shadow-md rounded-lg mt-10 md:t-40">
+            <div class="wrapper p-8 shadow-md rounded-lg mt-70 md:mt-20">
                 <div class="title-text">
                     <div class="title login">Sign In</div>
                     <div class="title signup">Sign Up</div>

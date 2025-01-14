@@ -1,8 +1,10 @@
 <?php
 session_start();
 
+
+
 if (!isset($_SESSION["login"])) {
-    header("Location: landing_page.php");
+    header("Location: landing_page.php?message=Silakan login terlebih dahulu!");
     exit;
 }
 

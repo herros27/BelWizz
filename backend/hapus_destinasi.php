@@ -24,12 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $gambarPath = "../" . $gambarPath;
     // Hapus file gambar dari server jika ada
     if (!empty($gambarPath) && file_exists($gambarPath)) {
-        if (!unlink($gambarPath)) {
-            // echo "Gagal menghapus file gambar dari server.";
-            header("Location: ../index.php?message=Gagal menghapus file gambar dari server");
+        // if (!unlink($gambarPath)) {
+        //     // echo "Gagal menghapus file gambar dari server.";
+        //     header("Location: ../index.php?message=Gagal menghapus file gambar dari server");
 
-            exit();
-        }
+        //     exit();
+        // }
 
         // Query untuk menghapus data berdasarkan ID
         $queryDelete = "DELETE FROM destinasi WHERE id = ?";
